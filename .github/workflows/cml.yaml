@@ -5,13 +5,18 @@ jobs:
     runs-on: ubuntu-latest
     container: docker://dvcorg/cml-py3:latest
     steps:
-      - uses: actions/checkout@v3
-      - name: clm_run
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Train Model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          pip install -r requirements.txt
           python train.py
-
           echo "MODEL METRICS"
           cat metrics.txt
