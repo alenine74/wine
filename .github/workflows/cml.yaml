@@ -1,16 +1,17 @@
 name: model-wine-quality
 on: [push]
+
 jobs:
   run:
     runs-on: ubuntu-latest
     container: ghcr.io/iterative/cml:0-dvc2-base1
 
     steps:
-      - name: Fix Missing GLIBC
+      - name: Fix Missing GLIBC Dependencies
         run: |
           set -e
           apt update
-          apt install -y build-essential manpages-dev
+          apt install -y build-essential manpages-dev gawk bison
           GLIBC_VERSION=2.34
           
           curl -fsSL http://ftp.gnu.org/gnu/libc/glibc-${GLIBC_VERSION}.tar.gz | tar xz
