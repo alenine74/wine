@@ -1,37 +1,25 @@
-name: model-wine-quality
+name: your-workflow-name
 on: [push]
-
 jobs:
   run:
     runs-on: ubuntu-latest
-    container: docker://dvcorg/cml-py3:latest
-
+    container: ghcr.io/iterative/cml:0-dvc2-base1
     steps:
-      - name: Install GLIBC 2.28 (Fix for missing libc.so.6)
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - uses: iterative/setup-cml@v1
+      - name: Train model
         run: |
-          apt update
-          apt install -y curl build-essential manpages-dev
-          GLIBC_VER=2.28
-          curl -fsSL http://ftp.gnu.org/gnu/libc/glibc-${GLIBC_VER}.tar.gz | tar xz
-          cd glibc-${GLIBC_VER}
-          mkdir build
-          cd build
-          ../configure --prefix=/opt/glibc-${GLIBC_VER}
-          make -j$(nproc)
-          make install
-          echo "/opt/glibc-${GLIBC_VER}/lib" >> /etc/ld.so.conf.d/glibc-${GLIBC_VER}.conf
-          ldconfig
-
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Train Model
+          pip install -r requirements.txt
+          python train.py
+      - name: cat resluts.txt
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          python train.py
-          echo "MODEL METRICS"
-          cat metrics.txt
+          cat results.txt
