@@ -1,25 +1,39 @@
-name: your-workflow-name
+name: model-wine-quality
 on: [push]
 jobs:
   run:
     runs-on: ubuntu-latest
     container: ghcr.io/iterative/cml:0-dvc2-base1
-    steps:
-      - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.x'
-      - uses: iterative/setup-cml@v1
-      - name: Train model
+    steps:
+      - name: Fix Missing GLIBC
         run: |
-          pip install -r requirements.txt
-          python train.py
-      - name: cat resluts.txt
+          set -e
+          apt update
+          apt install -y build-essential manpages-dev
+          GLIBC_VERSION=2.34
+          
+          curl -fsSL http://ftp.gnu.org/gnu/libc/glibc-${GLIBC_VERSION}.tar.gz | tar xz
+          cd glibc-${GLIBC_VERSION}
+          mkdir build
+          cd build
+          ../configure --prefix=/opt/glibc-${GLIBC_VERSION}
+          make -j$(nproc)
+          make install
+          
+          echo "/opt/glibc-${GLIBC_VERSION}/lib" >> /etc/ld.so.conf.d/glibc-${GLIBC_VERSION}.conf
+          ldconfig
+
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Train Model
+        run: python train.py
+
+      - name: Show Results
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          cat results.txt
+        run: cat results.txt
