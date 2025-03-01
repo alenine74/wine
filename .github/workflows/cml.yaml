@@ -3,38 +3,16 @@ on: [push]
 
 jobs:
   run:
-    runs-on: ubuntu-latest
-    container: ghcr.io/iterative/cml:0-dvc2-base1
-
+    runs-on: [ubuntu-latest]
+    container: docker://dvcorg/cml-py3:latest
     steps:
-      - name: Fix Missing GLIBC Dependencies
-        run: |
-          set -e
-          apt update
-          apt install -y build-essential manpages-dev gawk bison
-          GLIBC_VERSION=2.34
-          
-          curl -fsSL http://ftp.gnu.org/gnu/libc/glibc-${GLIBC_VERSION}.tar.gz | tar xz
-          cd glibc-${GLIBC_VERSION}
-          mkdir build
-          cd build
-          ../configure --prefix=/opt/glibc-${GLIBC_VERSION}
-          make -j$(nproc)
-          make install
-          
-          echo "/opt/glibc-${GLIBC_VERSION}/lib" >> /etc/ld.so.conf.d/glibc-${GLIBC_VERSION}.conf
-          ldconfig
-
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Install Dependencies
-        run: pip install -r requirements.txt
-
-      - name: Train Model
-        run: python train.py
-
-      - name: Show Results
+      - uses: actions/checkout@v2
+        name: cml_run
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: cat results.txt
+        run: |
+          pip install -r requirements.txt
+          python train.py
+          
+          echo "MODEL METRICS"
+          cat results.txt
