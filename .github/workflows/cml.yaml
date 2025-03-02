@@ -1,6 +1,9 @@
 name: wine_quality
 
-on: [push]
+on: [ push ]
+
+permissions:
+  pull-requests: write
 
 jobs:
   train-and-report:
@@ -22,7 +25,6 @@ jobs:
       - name: Install CML
         run: |
           npm install -g @dvcorg/cml
-          # Verify installation
           cml --version
 
       - name: Run train.py
@@ -35,6 +37,8 @@ jobs:
           cat metrics.txt
 
       - name: Create markdown doc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "## Model metrics ##" > report.md
           cat metrics.txt >> report.md
