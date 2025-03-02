@@ -23,4 +23,15 @@ jobs:
 
       - name: Show metrics
         run: |
+          echo "MODEL"
           cat metrics.txt
+
+      - name: Create markdown doc
+        run: |
+          echo "## Model metrics ##" > report.md
+          cat metrics.txt >> report.md
+          
+          echo "## Data vis##" >> report.md
+          cml-publish feature_importance.png --md >> report.md
+          cml-publish residuals.png --md >> report.md
+          cml-send-comment report.md
