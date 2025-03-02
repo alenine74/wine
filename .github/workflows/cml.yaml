@@ -1,10 +1,11 @@
 name: wine_quality
 
-on: [push]
+on:
+  push:
 
 permissions:
-  push: write
   contents: read
+  pull-requests: write
 
 jobs:
   train-and-report:
@@ -30,17 +31,14 @@ jobs:
           npm install -g @dvcorg/cml
           cml --version
 
-
       - name: Run train.py
         run: |
           python train.py
-
 
       - name: Show metrics
         run: |
           echo "MODEL"
           cat metrics.txt
-
 
       - name: Create markdown doc
         env:
@@ -48,9 +46,7 @@ jobs:
         run: |
           echo "## Model metrics ##" > report.md
           cat metrics.txt >> report.md
-          
           echo "## Data vis##" >> report.md
-          
           cml publish feature_importance.png --md >> report.md
           cml publish residuals.png --md >> report.md
           cml comment create report.md
