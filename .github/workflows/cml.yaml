@@ -1,34 +1,19 @@
 name: wine_quality
-on:
-  push:
-    branches:
-      - develop
-      - experiments
-  pull_request:
-    branches:
-      - develop
-      - experiments
+
+on: [push]
 
 permissions:
-  pull-requests: write
+  push: write
   contents: read
 
 jobs:
   train-and-report:
     runs-on: ubuntu-latest
     steps:
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-          git config --global url."git@github.com:".insteadOf "https://github.com/"
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          repository: alenine74/wine
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -45,14 +30,17 @@ jobs:
           npm install -g @dvcorg/cml
           cml --version
 
+
       - name: Run train.py
         run: |
           python train.py
+
 
       - name: Show metrics
         run: |
           echo "MODEL"
           cat metrics.txt
+
 
       - name: Create markdown doc
         env:
@@ -60,7 +48,9 @@ jobs:
         run: |
           echo "## Model metrics ##" > report.md
           cat metrics.txt >> report.md
+          
           echo "## Data vis##" >> report.md
+          
           cml publish feature_importance.png --md >> report.md
           cml publish residuals.png --md >> report.md
           cml comment create report.md
