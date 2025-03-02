@@ -45,7 +45,7 @@ jobs:
         run: |
           echo "## Model metrics ##" > report.md
           cat metrics.txt >> report.md
-          echo "## Data vis##" >> report.md
+          echo "## Data vis ##" >> report.md
           cml publish feature_importance.png --md >> report.md
           cml publish residuals.png --md >> report.md
           cml comment create report.md
